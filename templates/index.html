@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>ELO Score Demonstration</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+        integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+
+<body>
+    <div class='container'>
+        <h1>ELO Score Demonstration</h1>
+
+        {% for item in candidates %}
+        <form class="candidate">
+            <p>Candidate: {{item.candidate_id}}, Score: {{item.score}}</p>
+            <a href="#" class="prefer_candidate"><button value="{{item.candidate_id}}" class='btn-pref'>Prefer
+                    {{item.candidate_id}}</button></a>
+        </form>
+        <br />
+        {% endfor %}
+
+        <div id=" scores">
+            <h3>ELO Scores:</h3>
+            <ul>
+                {% for item in data %}
+                <li id="{{item.candidate_id}}">{{item.candidate_id}}: {{item.score}}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <form id="form_reset">
+            <a href="#" id="reset"><button class='btn-reset'>Reset Scores</button></a>
+        </form>
+    </div>
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
+</body>
+
+</html>
