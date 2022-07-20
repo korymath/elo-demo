@@ -29,13 +29,13 @@
             <h3>ELO Scores:</h3>
             <ul>
                 {% for item in data %}
-                <li id="{{item.candidate_id}}">{{item.candidate_id}}: {{item.score}}</li>
+                <li id="candidate_id_{{item.candidate_id}}">{{item.candidate_id}}: {{item.score}}</li>
                 {% endfor %}
             </ul>
         </div>
 
         <form id="form_reset">
-            <a href="#" id="reset"><button class='btn-reset'>Reset Scores</button></a>
+            <a href="/api/reset" id="reset"><button class='btn-reset'>Reset Scores</button></a>
         </form>
     </div>
     <script src="{{ url_for('static', filename='index.js') }}"></script>
