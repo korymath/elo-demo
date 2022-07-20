@@ -13,7 +13,7 @@ db_client = firestore.client()
 db = db_client.collection("all_letters")
 
 # Define Sensible Defaults
-all_examples = ["A", "B", "C", "D"]
+all_examples = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 default_score = 100
 
 
@@ -92,47 +92,47 @@ def submit_preference():
     return jsonify(all_cand_sorted), 200
 
 
-@app.route("/api/reset")
-def reset():
-    """Reset scores."""
-    # Get and print all existing candidates.
-    docs = db.stream()
-    for doc in docs:
-        print(f"{doc.id} => {doc.to_dict()}")
-        db.document(f"{doc.id}").update({"score": default_score})
-        print(f"{doc.id} => {doc.to_dict()}")
+# @app.route("/api/reset")
+# def reset():
+#     """Reset scores."""
+#     # Get and print all existing candidates.
+#     docs = db.stream()
+#     for doc in docs:
+#         print(f"{doc.id} => {doc.to_dict()}")
+#         db.document(f"{doc.id}").update({"score": default_score})
+#         print(f"{doc.id} => {doc.to_dict()}")
 
-    print("Scores reset.")
-    all_candidates = [doc.to_dict() for doc in db.stream()]
-    all_cand_sorted = sorted(all_candidates, key=lambda d: d['candidate_id']) 
-    return jsonify(all_cand_sorted), 200
+#     print("Scores reset.")
+#     all_candidates = [doc.to_dict() for doc in db.stream()]
+#     all_cand_sorted = sorted(all_candidates, key=lambda d: d['candidate_id']) 
+#     return jsonify(all_cand_sorted), 200
 
 
-@app.route("/rebuild_index")
-def rebuild_index():
+# @app.route("/rebuild_index")
+# def rebuild_index():
 
-    # Get and print all existing candidates.
-    docs = db.stream()
-    for doc in docs:
-        print(f"{doc.id} => {doc.to_dict()}")
-        # Delete candidate
-        db.document(f"{doc.id}").delete()
+#     # Get and print all existing candidates.
+#     docs = db.stream()
+#     for doc in docs:
+#         print(f"{doc.id} => {doc.to_dict()}")
+#         # Delete candidate
+#         db.document(f"{doc.id}").delete()
 
-    print("All existing candidates deleted.")
+#     print("All existing candidates deleted.")
 
-    for example in all_examples:
-        data = {"candidate_id": example, "score": default_score}
-        db.add(data)
+#     for example in all_examples:
+#         data = {"candidate_id": example, "score": default_score}
+#         db.add(data)
 
-    # Get and print all existing candidates.
-    docs = db.stream()
-    for doc in docs:
-        print(f"{doc.id} => {doc.to_dict()}")
+#     # Get and print all existing candidates.
+#     docs = db.stream()
+#     for doc in docs:
+#         print(f"{doc.id} => {doc.to_dict()}")
 
-    print("Index rebuilt.")
-    all_candidates = [doc.to_dict() for doc in db.stream()]
-    all_cand_sorted = sorted(all_candidates, key=lambda d: d['candidate_id']) 
-    return jsonify(all_cand_sorted), 200
+#     print("Index rebuilt.")
+#     all_candidates = [doc.to_dict() for doc in db.stream()]
+#     all_cand_sorted = sorted(all_candidates, key=lambda d: d['candidate_id']) 
+#     return jsonify(all_cand_sorted), 200
 
 
 @app.route("/")

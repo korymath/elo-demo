@@ -16,5 +16,5 @@ Ensure that `key.json` is present in root directory. For more information, see [
 ## Run
 
 ```sh
-python run.py
+python main.py
 ```
