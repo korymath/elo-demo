@@ -141,12 +141,16 @@ def index():
 
     # Sample Candidates
     all_candidates = [doc.to_dict() for doc in db.stream()]
-    all_cand_sorted = sorted(all_candidates, key=lambda d: d['candidate_id']) 
+    all_cand_sort_id = sorted(all_candidates, key=lambda d: d['candidate_id'])
+    all_cand_sort_score = sorted(all_candidates, key=lambda d: d['score'], reverse=True)
     candidates = random.sample(all_candidates, 2)
 
     # Render the Page
     return render_template(
-        "index.html", data=all_cand_sorted, candidates=candidates)
+        "index.html", 
+        all_cand_sort_id=all_cand_sort_id, 
+        all_cand_sort_score=all_cand_sort_score, 
+        candidates=candidates)
 
 
 if __name__ == "__main__":

@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>ELO Score Demonstration</title>
+    <title>What is the everyone's favorite letter in the English language?</title>
+    <link rel="stylesheet" href="https://unpkg.com/mvp.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
         integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
@@ -13,28 +14,55 @@
 </head>
 
 <body>
-    <div class='container'>
-        <h1>ELO Score Demonstration</h1>
+    <main>
+        <section>
+        <header>
+            <h2>Choose the better letter!</h2>
+            <p>What is the everyone's favorite letter in the English language?</p>
+        </header>
 
         {% for item in candidates %}
-        <form class="candidate">
-            <p>Candidate: {{item.candidate_id}}</p>
-            <a href="#" class="prefer_candidate"><button value="{{item.candidate_id}}" class='btn-pref'>Prefer
-                    {{item.candidate_id}}</button></a>
-        </form>
-        <br />
+        <aside>
+            <section>
+            <a href="#" class="prefer_candidate">
+                <button value="{{item.candidate_id}}" class='btn-pref'>
+                    "{{item.candidate_id}}" is better!
+                </button>
+            </a>
+            </section>
+        </aside>
         {% endfor %}
+        
+        </section>
 
-        <div id=" scores">
-            <h3>ELO Scores:</h3>
+        <article>
+            <h3>ELO* Scores (by score)</h3>
             <ul>
-                {% for item in data %}
+                {% for item in all_cand_sort_score %}
                 <li id="candidate_id_{{item.candidate_id}}">{{item.candidate_id}}: {{item.score}}</li>
                 {% endfor %}
             </ul>
-        </div>
-    </div>
+            
+            <h3>ELO* Scores (by letter)</h3>
+            <ul>
+                {% for item in all_cand_sort_id %}
+                    <li id="candidate_id_{{item.candidate_id}}">{{item.candidate_id}}: {{item.score}}</li>
+                {% endfor %}
+            </ul>
+            
+            <p>*Elo rating system calculates the relative score of candidates in a pool in a zero-sum games such as a binary choice. If
+            you are curious about the Elo rating system, you can find out more on <a
+                href="What is the everyone's favorite letter in the English language?">Wikipedia</a>.</p>
+        </article>
+    </main>
+    <footer>
+        <hr>
+        <p>
+            <small>Made with ❤️ by Kory</small>
+        </p>
+    </footer>
     <script src="{{ url_for('static', filename='index.js') }}"></script>
 </body>
+
 
 </html>
