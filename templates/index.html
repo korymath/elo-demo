@@ -18,7 +18,7 @@
 
         {% for item in candidates %}
         <form class="candidate">
-            <p>Candidate: {{item.candidate_id}}, Score: {{item.score}}</p>
+            <p>Candidate: {{item.candidate_id}}</p>
             <a href="#" class="prefer_candidate"><button value="{{item.candidate_id}}" class='btn-pref'>Prefer
                     {{item.candidate_id}}</button></a>
         </form>

@@ -87,13 +87,9 @@ def submit_preference():
 
     print("Preference registered and scores updated.")
     
-    # Sample Candidates
     all_candidates = [doc.to_dict() for doc in db.stream()]
-    candidates = random.sample(all_candidates, 2)
-
-    # Render the Page
-    return render_template(
-        "index.html", data=all_candidates, candidates=candidates)
+    all_cand_sorted = sorted(all_candidates, key=lambda d: d['candidate_id']) 
+    return jsonify(all_cand_sorted), 200
 
 
 @app.route("/api/reset")
