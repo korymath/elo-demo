@@ -107,11 +107,11 @@ def submit_preference():
     # Calculate new win rate, matches, wins and losses
     selected_matches += 1
     selected_wins += 1
-    selected_win_rate = str(round(100 * (selected_wins / selected_matches), 2)) + "%"
+    selected_win_rate = round(100 * (selected_wins / selected_matches), 2)
 
     nonselected_matches += 1
     nonselected_losses += 1
-    nonselected_win_rate = str(round(100 * (nonselected_wins / nonselected_matches), 2)) + "%"
+    nonselected_win_rate = round(100 * (nonselected_wins / nonselected_matches), 2)
 
     # Calculate the new elo scores
     selected_new_elo_score, non_selected_new_elo_score = calculate_updated_elo_score(
