@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>What is the everyone's favorite letter in the English language?</title>
+    <title>Choose the better letter!</title>
     <link rel="stylesheet" href="https://unpkg.com/mvp.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
@@ -18,15 +18,14 @@
         <section>
             <header>
                 <h2>Choose the better letter!</h2>
-                <p>What does everyone think the best letters in the English language are?</p>
             </header>
 
-            {% for item in candidates %}
+            {% for next_match_candidate in next_match_candidates %}
             <aside>
                 <section>
                     <a href="#" class="prefer_candidate">
-                        <button value="{{item.candidate_id}}" class='btn-pref'>
-                            "{{item.candidate_id}}" is better!
+                        <button value="{{next_match_candidate.name}}" class='btn-pref'>
+                            "{{next_match_candidate.name}}" is better!
                         </button>
                     </a>
                 </section>
@@ -36,8 +35,7 @@
             <article>
                 <h3>Results</h3>
                 <p>Elo score calculates the relative score of candidates in a pool in a zero-sum games such as
-                    a binary choice. If
-                    you are curious about the Elo rating system, you can find out more on <a
+                    a binary choice. Source: <a
                         href="What is the everyone's favorite letter in the English language?">Wikipedia</a>.</p>
                 <table class="sortable">
                     <thead>
@@ -50,13 +48,13 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for item in all_cand_sort_score %}
-                        <tr id="candidate_id_{{item.candidate_id}}">
-                            <td>{{item.candidate_id}}</td>
-                            <td>{{item.score}}</td>
-                            <td>{{item.score}}</td>
-                            <td>{{item.score}}</td>
-                            <td>{{item.score}}</td>
+                        {% for candidate in all_candidates %}
+                        <tr id="{{candidate.name}}">
+                            <td>{{candidate.name}}</td>
+                            <td>{{candidate.score}}</td>
+                            <td>{{candidate.score}}</td>
+                            <td>{{candidate.score}}</td>
+                            <td>{{candidate.score}}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -73,6 +71,5 @@
     <script src="{{ url_for('static', filename='index.js') }}"></script>
     <script src="https://tofsjonas.github.io/sortable/sortable.js"></script>
 </body>
-
 
 </html>

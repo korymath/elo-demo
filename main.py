@@ -12,8 +12,35 @@ default_app = initialize_app(cred)
 db_client = firestore.client()
 db = db_client.collection("all_letters")
 
-# Define Sensible Defaults
-all_examples = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+# Define candidate names for list of letters
+candidate_names = [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "X",
+    "Y",
+    "Z",
+]
 default_score = 100
 
 
@@ -40,17 +67,16 @@ def calculate_updated_elo_score(
 @app.route("/api/submit_preference/", methods=["GET"])
 def submit_preference():
     """Submit a new preference."""
-    selected_candidate_id = request.args["selected_candidate_id"]
-    non_selected_candidate_id = request.args["non_selected_candidate_id"]
+    selected_name = request.args["selected_name"]
+    non_selected_name = request.args["non_selected_name"]
 
     print(
-        f"Selected candidate ID: {selected_candidate_id} \n",
-        f"Nonselected candidate ID: {non_selected_candidate_id}",
+        f"Selected candidate name: {selected_name} \n",
+        f"Nonselected candidate name: {non_selected_name}",
     )
 
     # Handle selected candidate
-    selected_score_docs = db.where(
-        "candidate_id", "==", selected_candidate_id).stream()
+    selected_score_docs = db.where("name", "==", selected_name).stream()
     for sel_doc in selected_score_docs:
         selected_doc_id = sel_doc.id
         selected_doc = sel_doc.to_dict()
@@ -58,7 +84,7 @@ def submit_preference():
 
     # Handle nonselected candidate
     nonselected_score_docs = db.where(
-        "candidate_id", "==", non_selected_candidate_id
+        "name", "==", non_selected_name
     ).stream()
     for non_doc in nonselected_score_docs:
         non_selected_doc_id = non_doc.id
@@ -80,59 +106,58 @@ def submit_preference():
     )
 
     # Update the database
+    
     # Modify the selected candidate score
     db.document(f"{selected_doc_id}").update({"score": selected_new_score})
+    
     # Modify the non-selected candidate score
     db.document(f"{non_selected_doc_id}").update({"score": non_selected_new_score})
 
     print("Preference registered and scores updated.")
-    
+
     all_candidates = [doc.to_dict() for doc in db.stream()]
-    all_cand_sorted = sorted(all_candidates, key=lambda d: d['candidate_id']) 
-    return jsonify(all_cand_sorted), 200
+    return jsonify(all_candidates), 200
 
 
-# @app.route("/api/reset")
-# def reset():
-#     """Reset scores."""
-#     # Get and print all existing candidates.
-#     docs = db.stream()
-#     for doc in docs:
-#         print(f"{doc.id} => {doc.to_dict()}")
-#         db.document(f"{doc.id}").update({"score": default_score})
-#         print(f"{doc.id} => {doc.to_dict()}")
+@app.route("/api/reset")
+def reset():
+    """Reset scores."""
+    # Get and print all existing candidates.
+    docs = db.stream()
+    for doc in docs:
+        print(f"{doc.id} => {doc.to_dict()}")
+        db.document(f"{doc.id}").update({"score": default_score})
+        print(f"{doc.id} => {doc.to_dict()}")
 
-#     print("Scores reset.")
-#     all_candidates = [doc.to_dict() for doc in db.stream()]
-#     all_cand_sorted = sorted(all_candidates, key=lambda d: d['candidate_id']) 
-#     return jsonify(all_cand_sorted), 200
+    print("Scores reset.")
+    all_candidates = [doc.to_dict() for doc in db.stream()]
+    return jsonify(all_candidates), 200
 
 
-# @app.route("/rebuild_index")
-# def rebuild_index():
+@app.route("/rebuild_index")
+def rebuild_index():
 
-#     # Get and print all existing candidates.
-#     docs = db.stream()
-#     for doc in docs:
-#         print(f"{doc.id} => {doc.to_dict()}")
-#         # Delete candidate
-#         db.document(f"{doc.id}").delete()
+    # Get and print all existing candidates.
+    docs = db.stream()
+    for doc in docs:
+        print(f"{doc.id} => {doc.to_dict()}")
+        # Delete candidate
+        db.document(f"{doc.id}").delete()
 
-#     print("All existing candidates deleted.")
+    print("All existing candidates deleted.")
 
-#     for example in all_examples:
-#         data = {"candidate_id": example, "score": default_score}
-#         db.add(data)
+    for name in candidate_names:
+        data = {"name": name, "score": default_score}
+        db.add(data)
 
-#     # Get and print all existing candidates.
-#     docs = db.stream()
-#     for doc in docs:
-#         print(f"{doc.id} => {doc.to_dict()}")
+    # Get and print all existing candidates.
+    docs = db.stream()
+    for doc in docs:
+        print(f"{doc.id} => {doc.to_dict()}")
 
-#     print("Index rebuilt.")
-#     all_candidates = [doc.to_dict() for doc in db.stream()]
-#     all_cand_sorted = sorted(all_candidates, key=lambda d: d['candidate_id']) 
-#     return jsonify(all_cand_sorted), 200
+    print("Index rebuilt.")
+    all_candidates = [doc.to_dict() for doc in db.stream()]
+    return jsonify(all_candidates), 200
 
 
 @app.route("/")
@@ -141,16 +166,14 @@ def index():
 
     # Sample Candidates
     all_candidates = [doc.to_dict() for doc in db.stream()]
-    all_cand_sort_id = sorted(all_candidates, key=lambda d: d['candidate_id'])
-    all_cand_sort_score = sorted(all_candidates, key=lambda d: d['score'], reverse=True)
-    candidates = random.sample(all_candidates, 2)
+    next_match_candidates = random.sample(all_candidates, 2)
 
     # Render the Page
     return render_template(
-        "index.html", 
-        all_cand_sort_id=all_cand_sort_id, 
-        all_cand_sort_score=all_cand_sort_score, 
-        candidates=candidates)
+        "index.html",
+        all_candidates=all_candidates,
+        next_match_candidates=next_match_candidates,
+    )
 
 
 if __name__ == "__main__":
