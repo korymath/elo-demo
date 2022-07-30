@@ -1,10 +1,16 @@
 import random
+import logging
 from typing_extensions import assert_type
 from flask import Flask, render_template, jsonify, request
 from firebase_admin import credentials, firestore, initialize_app
 
 # Initialize Flask App
 app = Flask(__name__)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
+)
+
 
 # Initialize Firestore DB
 cred = credentials.Certificate("key.json")
@@ -41,7 +47,7 @@ candidate_names = [
     "Y",
     "Z",
 ]
-default_score = 100
+default_elo_score = 100
 
 
 def calculate_updated_elo_score(
@@ -70,9 +76,11 @@ def submit_preference():
     selected_name = request.args["selected_name"]
     non_selected_name = request.args["non_selected_name"]
 
-    print(
-        f"Selected candidate name: {selected_name} \n",
-        f"Nonselected candidate name: {non_selected_name}",
+    app.logger.info(
+        (
+            f"selected name: {selected_name}, "
+            + f"nonselected name: {non_selected_name}"
+        ),
     )
 
     # Handle selected candidate
@@ -80,42 +88,79 @@ def submit_preference():
     for sel_doc in selected_score_docs:
         selected_doc_id = sel_doc.id
         selected_doc = sel_doc.to_dict()
-        selected_score = selected_doc["score"]
+        selected_elo_score = selected_doc["elo_score"]
+        selected_matches = selected_doc["matches"]
+        selected_wins = selected_doc["wins"]
+    app.logger.info(f"selected_doc: {selected_doc}")
 
     # Handle nonselected candidate
-    nonselected_score_docs = db.where(
-        "name", "==", non_selected_name
-    ).stream()
+    nonselected_score_docs = db.where("name", "==", non_selected_name).stream()
     for non_doc in nonselected_score_docs:
         non_selected_doc_id = non_doc.id
         non_selected_doc = non_doc.to_dict()
-        nonselected_score = non_selected_doc["score"]
+        nonselected_elo_score = non_selected_doc["elo_score"]
+        nonselected_matches = non_selected_doc["matches"]
+        nonselected_wins = non_selected_doc["wins"]
+        nonselected_losses = non_selected_doc["losses"]
+    app.logger.info(f"non_selected_doc: {non_selected_doc}")
 
-    print(
-        f"Selected_score: {selected_score}", 
-        f"Nonselected_score: {nonselected_score}"
-    )
+    # Calculate new win rate, matches, wins and losses
+    selected_matches += 1
+    selected_wins += 1
+    selected_win_rate = str(round(100 * (selected_wins / selected_matches), 2)) + "%"
 
-    # Calculate the new scores
-    selected_new_score, non_selected_new_score = calculate_updated_elo_score(
-        selected_score, nonselected_score
+    nonselected_matches += 1
+    nonselected_losses += 1
+    nonselected_win_rate = str(round(100 * (nonselected_wins / nonselected_matches), 2)) + "%"
+
+    # Calculate the new elo scores
+    selected_new_elo_score, non_selected_new_elo_score = calculate_updated_elo_score(
+        selected_elo_score, nonselected_elo_score
     )
-    print(
-        f"Selected_new_score: {selected_new_score}",
-        f"Non_selected_new_score: {non_selected_new_score}",
+    app.logger.info(
+        (
+            f"selected_new_elo_score: {selected_new_elo_score}, "
+            + f"non_selected_new_score: {non_selected_new_elo_score}"
+        ),
     )
 
     # Update the database
-    
+    batch = db_client.batch()
+
     # Modify the selected candidate score
-    db.document(f"{selected_doc_id}").update({"score": selected_new_score})
-    
+    selected_ref = db.document(f"{selected_doc_id}")
+    batch.update(
+        selected_ref,
+        {
+            "elo_score": selected_new_elo_score,
+            "win_rate": selected_win_rate,
+            "matches": selected_matches,
+            "wins": selected_wins,
+        },
+    )
+
     # Modify the non-selected candidate score
-    db.document(f"{non_selected_doc_id}").update({"score": non_selected_new_score})
+    non_selected_ref = db.document(f"{non_selected_doc_id}")
+    batch.update(
+        non_selected_ref, 
+        {
+            "elo_score": non_selected_new_elo_score,
+            "win_rate": nonselected_win_rate,
+            "matches": nonselected_matches,
+            "losses": nonselected_losses,
+        },
+    )
 
-    print("Preference registered and scores updated.")
+    # Commit the batch
+    batch.commit()
 
-    all_candidates = [doc.to_dict() for doc in db.stream()]
+    app.logger.info("Preference registered and scores updated as a batched write.")
+
+    # Return list of all candidates sorted by name.
+    all_candidates = [
+        doc.to_dict()
+        for doc in db.order_by("name", direction=firestore.Query.ASCENDING).stream()
+    ]
     return jsonify(all_candidates), 200
 
 
@@ -126,37 +171,59 @@ def reset():
     docs = db.stream()
     for doc in docs:
         print(f"{doc.id} => {doc.to_dict()}")
-        db.document(f"{doc.id}").update({"score": default_score})
+        db.document(f"{doc.id}").update(
+            {
+                "elo_score": default_elo_score,
+                "win_rate": "-",
+                "matches": 0,
+                "wins": 0,
+                "losses": 0,
+            }
+        )
         print(f"{doc.id} => {doc.to_dict()}")
-
     print("Scores reset.")
-    all_candidates = [doc.to_dict() for doc in db.stream()]
+
+    # Return list of all candidates sorted by name.
+    all_candidates = [
+        doc.to_dict()
+        for doc in db.order_by("name", direction=firestore.Query.ASCENDING).stream()
+    ]
     return jsonify(all_candidates), 200
 
 
 @app.route("/rebuild_index")
 def rebuild_index():
 
-    # Get and print all existing candidates.
+    # Get, print, and delete all existing candidates.
     docs = db.stream()
     for doc in docs:
         print(f"{doc.id} => {doc.to_dict()}")
-        # Delete candidate
         db.document(f"{doc.id}").delete()
-
     print("All existing candidates deleted.")
 
+    # Add a set of candidates from a pre-set list.
     for name in candidate_names:
-        data = {"name": name, "score": default_score}
+        data = {
+            "name": name,
+            "elo_score": default_elo_score,
+            "win_rate": "-",
+            "matches": 0,
+            "wins": 0,
+            "losses": 0,
+        }
         db.add(data)
 
     # Get and print all existing candidates.
     docs = db.stream()
     for doc in docs:
         print(f"{doc.id} => {doc.to_dict()}")
-
     print("Index rebuilt.")
-    all_candidates = [doc.to_dict() for doc in db.stream()]
+
+    # Return list of all candidates sorted by name.
+    all_candidates = [
+        doc.to_dict()
+        for doc in db.order_by("name", direction=firestore.Query.ASCENDING).stream()
+    ]
     return jsonify(all_candidates), 200
 
 
@@ -164,8 +231,13 @@ def rebuild_index():
 def index():
     """Render the main index page."""
 
-    # Sample Candidates
-    all_candidates = [doc.to_dict() for doc in db.stream()]
+    # Return list of all candidates sorted by name.
+    all_candidates = [
+        doc.to_dict()
+        for doc in db.order_by("name", direction=firestore.Query.ASCENDING).stream()
+    ]
+
+    # Sample 2 candidates for next match
     next_match_candidates = random.sample(all_candidates, 2)
 
     # Render the Page

@@ -6,7 +6,7 @@ $(function () {
             url: '/api/reset',
             data: {},
             success: function (data) {
-                console.log(data);
+                // console.log(data);
                 window.location.replace("/");
             }
         });
@@ -24,8 +24,8 @@ $(function () {
         var filtered_candidate_value = candidate_values.filter(
             (ff) => ff !== e.target.value)
 
-        console.log('Selected candidate', e.target.value)
-        console.log('Non-selected candidate', filtered_candidate_value[0])
+        // console.log('Selected candidate', e.target.value)
+        // console.log('Non-selected candidate', filtered_candidate_value[0])
 
         $.ajax({
             type: 'GET',
@@ -35,7 +35,7 @@ $(function () {
                 non_selected_name: filtered_candidate_value[0]
             },
             success: function (data) {
-                console.log(data);
+                // console.log(data);
                 window.location.replace("/");
             }
         });
