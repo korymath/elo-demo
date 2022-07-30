@@ -4,6 +4,6 @@ ul {
     -moz-columns: 4;
 }
 
-footer, header, main {
-    padding: 0;
+th {
+    cursor: pointer;
 }

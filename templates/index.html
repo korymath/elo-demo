@@ -16,44 +16,53 @@
 <body>
     <main>
         <section>
-        <header>
-            <h2>Choose the better letter!</h2>
-            <p>What is the everyone's favorite letter in the English language?</p>
-        </header>
+            <header>
+                <h2>Choose the better letter!</h2>
+                <p>What does everyone think the best letters in the English language are?</p>
+            </header>
 
-        {% for item in candidates %}
-        <aside>
-            <section>
-            <a href="#" class="prefer_candidate">
-                <button value="{{item.candidate_id}}" class='btn-pref'>
-                    "{{item.candidate_id}}" is better!
-                </button>
-            </a>
-            </section>
-        </aside>
-        {% endfor %}
-        
+            {% for item in candidates %}
+            <aside>
+                <section>
+                    <a href="#" class="prefer_candidate">
+                        <button value="{{item.candidate_id}}" class='btn-pref'>
+                            "{{item.candidate_id}}" is better!
+                        </button>
+                    </a>
+                </section>
+            </aside>
+            {% endfor %}
+
+            <article>
+                <h3>Results</h3>
+                <p>Elo score calculates the relative score of candidates in a pool in a zero-sum games such as
+                    a binary choice. If
+                    you are curious about the Elo rating system, you can find out more on <a
+                        href="What is the everyone's favorite letter in the English language?">Wikipedia</a>.</p>
+                <table class="sortable">
+                    <thead>
+                        <tr>
+                            <th>Letter</th>
+                            <th>Matches</th>
+                            <th>Wins</th>
+                            <th>Losses</th>
+                            <th>ELO</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in all_cand_sort_score %}
+                        <tr id="candidate_id_{{item.candidate_id}}">
+                            <td>{{item.candidate_id}}</td>
+                            <td>{{item.score}}</td>
+                            <td>{{item.score}}</td>
+                            <td>{{item.score}}</td>
+                            <td>{{item.score}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </article>
         </section>
-
-        <article>
-            <h3>ELO* Scores (by score)</h3>
-            <ul>
-                {% for item in all_cand_sort_score %}
-                <li id="candidate_id_{{item.candidate_id}}">{{item.candidate_id}}: {{item.score}}</li>
-                {% endfor %}
-            </ul>
-            
-            <h3>ELO* Scores (by letter)</h3>
-            <ul>
-                {% for item in all_cand_sort_id %}
-                    <li id="candidate_id_{{item.candidate_id}}">{{item.candidate_id}}: {{item.score}}</li>
-                {% endfor %}
-            </ul>
-            
-            <p>*Elo rating system calculates the relative score of candidates in a pool in a zero-sum games such as a binary choice. If
-            you are curious about the Elo rating system, you can find out more on <a
-                href="What is the everyone's favorite letter in the English language?">Wikipedia</a>.</p>
-        </article>
     </main>
     <footer>
         <hr>
@@ -62,6 +71,7 @@
         </p>
     </footer>
     <script src="{{ url_for('static', filename='index.js') }}"></script>
+    <script src="https://tofsjonas.github.io/sortable/sortable.js"></script>
 </body>
 
 
